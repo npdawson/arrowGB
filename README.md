@@ -1,2 +1,2 @@
-# arrowNES
-NES Emulator written in Haskell with arrows
+# arrowGB
+GameBoy emulator written in Haskell with arrows

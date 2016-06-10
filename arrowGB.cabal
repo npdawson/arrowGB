@@ -1,8 +1,8 @@
-name:                arrowNES
+name:                arrowGB
 version:             0.1.0.0
-synopsis:            NES emulator written with arrows
+synopsis:            GameBoy emulator written with arrows
 description:         Please see README.md
-homepage:            https://github.com/npdawson/arrowNES#readme
+homepage:            https://github.com/npdawson/arrowGB#readme
 license:             GPL
 license-file:        LICENSE
 author:              Nathaniel P. Dawson
@@ -13,28 +13,27 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
--- library
---   hs-source-dirs:      src
---   exposed-modules:     Lib
---   build-depends:       base >= 4.7 && < 5
---   default-language:    Haskell2010
+library
+  hs-source-dirs:      src
+  exposed-modules:     Lib
+  build-depends:       base >= 4.7 && < 5
+  default-language:    Haskell2010
 
-executable arrowNES
+executable arrowGB
   hs-source-dirs:      src
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
   default-language:    Haskell2010
 
-test-suite arrowNES-test
+test-suite arrowGB-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
   build-depends:       base
-                     , arrowNES
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
 source-repository head
   type:     git
-  location: https://github.com/npdawson/arrowNES
+  location: https://github.com/npdawson/arrowGB
