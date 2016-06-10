@@ -4,18 +4,26 @@ module Main Main0,1
 main main4,5
 main main5,6
 
-./src/Lib.hs,254
+./src/Lib.hs,66
 module Lib Lib0,1
-data Instr Instr7,8
-data Instr = Instr Instr7,8
-  asm asm8,9
-  bytes bytes9,10
-  cycles cycles10,11
-type ByteMap ByteMap14,15
+somefunc somefunc2,3
+somefunc somefunc3,4
+
+./src/Opcodes.hs,267
+module Opcodes Opcodes0,1
+data Instr Instr5,6
+data Instr = Instr Instr5,6
+  asm asm6,7
+  bytes bytes7,8
+  cycles cycles8,9
+type ByteMap ByteMap12,13
+opcodes opcodes25,26
 opcodes opcodes26,27
-opcodes opcodes27,28
-somefunc somefunc77,78
-somefunc somefunc78,79
+prefixOps prefixOps285,286
+prefixOps prefixOps286,287
+
+./src/CPU.hs,20
+module CPU CPU0,1
 
 ./test/Spec.hs,30
 main main0,1
