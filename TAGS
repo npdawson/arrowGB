@@ -6,8 +6,8 @@ main main5,6
 
 ./src/Lib.hs,66
 module Lib Lib0,1
-somefunc somefunc2,3
-somefunc somefunc3,4
+somefunc somefunc4,5
+somefunc somefunc5,6
 
 ./src/Opcodes.hs,267
 module Opcodes Opcodes0,1
@@ -22,8 +22,26 @@ opcodes opcodes26,27
 prefixOps prefixOps285,286
 prefixOps prefixOps286,287
 
-./src/CPU.hs,20
-module CPU CPU0,1
+./src/CPU.hs,47
+module CPU CPU1,2
+cpu cpu8,9
+cpu cpu9,10
+
+./src/flycheck_CPU.hs,47
+module CPU CPU1,2
+cpu cpu8,9
+cpu cpu9,10
+
+./src/Types.hs,290
+module Types Types0,1
+newtype DataBus DataBus4,5
+newtype DataBus = DataBus DataBus4,5
+newtype AddrBus AddrBus5,6
+newtype AddrBus = AddrBus AddrBus5,6
+data Control Control7,8
+data Control = ReadMemReadMem7,8
+             | WriteMemWriteMem8,9
+             | RWMemRWMem9,10
 
 ./test/Spec.hs,30
 main main0,1
