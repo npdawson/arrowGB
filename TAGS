@@ -1,18 +1,21 @@
 
-./src/Lib.hs,43
-module Lib Lib0,1
-somefunc somefunc2,3
-
-./src/Main.hs,190
+./app/Main.hs,52
 module Main Main0,1
 main main4,5
 main main5,6
-data Instr Instr9,10
-data Instr = Instr Instr9,10
-  opcode opcode10,11
-  asm asm11,12
-  bytes bytes12,13
-  cycles cycles13,14
+
+./src/Lib.hs,254
+module Lib Lib0,1
+data Instr Instr7,8
+data Instr = Instr Instr7,8
+  asm asm8,9
+  bytes bytes9,10
+  cycles cycles10,11
+type ByteMap ByteMap14,15
+opcodes opcodes26,27
+opcodes opcodes27,28
+somefunc somefunc77,78
+somefunc somefunc78,79
 
 ./test/Spec.hs,30
 main main0,1
