@@ -1,8 +1,36 @@
 
-./app/Main.hs,52
-module Main Main0,1
-main main4,5
-main main5,6
+./src/Types.hs,258
+module Types Types0,1
+newtype DataBus DataBus4,5
+newtype DataBus = DataBus DataBus4,5
+newtype AddrBus AddrBus5,6
+newtype AddrBus = AddrBus AddrBus5,6
+data Control Control7,8
+data Control = ReadMemReadMem7,8
+             | WriteMemWriteMem8,9
+
+./src/Mem.hs,350
+module Mem Mem2,3
+type Ram Ram13,14
+wram wram16,17
+wram wram17,18
+vram vram20,21
+vram vram21,22
+extram extram24,25
+extram extram25,26
+spriteTable spriteTable28,29
+spriteTable spriteTable29,30
+ioRegisters ioRegisters32,33
+ioRegisters ioRegisters33,34
+hram hram36,37
+hram hram37,38
+memory memory39,40
+memory memory40,41
+
+./src/CPU.hs,47
+module CPU CPU1,2
+cpu cpu8,9
+cpu cpu9,10
 
 ./src/Lib.hs,66
 module Lib Lib0,1
@@ -22,34 +50,14 @@ opcodes opcodes26,27
 prefixOps prefixOps285,286
 prefixOps prefixOps286,287
 
-./src/CPU.hs,47
-module CPU CPU1,2
-cpu cpu8,9
-cpu cpu9,10
-
-./src/Types.hs,258
-module Types Types0,1
-newtype DataBus DataBus4,5
-newtype DataBus = DataBus DataBus4,5
-newtype AddrBus AddrBus5,6
-newtype AddrBus = AddrBus AddrBus5,6
-data Control Control7,8
-data Control = ReadMemReadMem7,8
-             | WriteMemWriteMem8,9
-
-./src/Mem.hs,150
-module Mem Mem2,3
-type Ram Ram13,14
-wram wram16,17
-wram wram17,18
-vram vram20,21
-vram vram21,22
-memory memory23,24
-memory memory24,25
+./Setup.hs,15
+main main1,2
 
 ./test/Spec.hs,30
 main main0,1
 main main1,2
 
-./Setup.hs,15
-main main1,2
+./app/Main.hs,52
+module Main Main0,1
+main main4,5
+main main5,6
