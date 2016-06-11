@@ -1,12 +1,12 @@
 {-# LANGUAGE Arrows #-}
 module CPU where
 
-import FRP.Yampa
+import FRP.Netwire
 
 import Opcodes
 import Types
 
-cpu :: SF DataBus (AddrBus, DataBus, Control)
+cpu :: (HasTime t s, Monad m) => Wire s e m DataBus (AddrBus, DataBus, Control)
 cpu = proc (DataBus byte) -> returnA -< (AddrBus 1, DataBus byte, ReadMem)
 
 -- how to handle internal cpu state?

@@ -18,9 +18,13 @@ library
   exposed-modules:     Lib
                      , CPU
                      , Opcodes
+                     , Mem
   build-depends:       base >= 4.7 && < 5
                      , containers
-                     , Yampa
+                     , netwire
+                     , vector
+                     , primitive
+                     , bytestring
   default-language:    Haskell2010
 
 executable arrowGB-exe

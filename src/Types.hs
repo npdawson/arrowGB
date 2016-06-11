@@ -7,4 +7,4 @@ newtype AddrBus = AddrBus Word16
 
 data Control = ReadMem
              | WriteMem
-             | RWMem
+             -- | RWMem

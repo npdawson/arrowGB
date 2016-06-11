@@ -27,12 +27,7 @@ module CPU CPU1,2
 cpu cpu8,9
 cpu cpu9,10
 
-./src/flycheck_CPU.hs,47
-module CPU CPU1,2
-cpu cpu8,9
-cpu cpu9,10
-
-./src/Types.hs,290
+./src/Types.hs,258
 module Types Types0,1
 newtype DataBus DataBus4,5
 newtype DataBus = DataBus DataBus4,5
@@ -41,7 +36,13 @@ newtype AddrBus = AddrBus AddrBus5,6
 data Control Control7,8
 data Control = ReadMemReadMem7,8
              | WriteMemWriteMem8,9
-             | RWMemRWMem9,10
+
+./src/Mem.hs,92
+module Mem Mem1,2
+ram ram13,14
+ram ram14,15
+memory memory16,17
+memory memory17,18
 
 ./test/Spec.hs,30
 main main0,1
