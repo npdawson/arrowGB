@@ -1,31 +1,48 @@
-{-# LANGUAGE Arrows #-}
-module Mem where
+{-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+module Mem (memory) where
 
 import Prelude hiding ((.), id)
 import Control.Wire
 import Control.Monad.ST
 import Data.Word
 import qualified Data.Vector.Unboxed.Mutable as M
-import qualified Data.Vector.Unboxed as V
 import qualified Data.ByteString as B
 
 import Types
 
-ram :: ST s (M.MVector s Word8)
-ram = M.replicate (64 * 1024) 0
+type Ram = forall s. ST s (M.MVector s Word8)
 
-memory :: B.ByteString -> Wire s e (ST s') (AddrBus, DataBus, Control) DataBus
+-- 8K of working ram (for non-color GB)
+wram :: Ram
+wram = M.replicate (8 * 1024) 0
+
+-- 8K of video ram
+vram :: Ram
+vram = M.replicate (8 * 1024) 0
+
+memory :: B.ByteString -> Wire s () (ST s') (AddrBus, DataBus, Control) DataBus
 memory rom = mkGen_ $ \(AddrBus a, DataBus byte, ctrl) -> do
-  ram' <- ram
   let addr = fromIntegral a
-  out <- case ctrl of
-           ReadMem -> M.read ram' addr
-           WriteMem -> do M.write ram' addr byte; return byte
-  return (Right (DataBus out))
+  wram' <- wram
+  vram' <- vram
+  case ctrl of
+    ReadMem -> do
+      out <- case addr of
+        _ | addr `elem` [0x0..0x7FFF]    -> return $ B.index rom addr
+          | addr `elem` [0x8000..0x9FFF] -> M.read vram' addr -- TODO calc offset!
+          | addr `elem` [0xC000..0xDFFF] -> M.read wram' addr -- TODO calc offset!
+          | otherwise -> return 0 -- delete? theoretically unreachable once complete
+      return (Right (DataBus out))
+    WriteMem -> do
+      M.write wram' addr byte
+      return (Left ())
 
--- cartridge in a separate module?
--- maybe at least give it its own arrow
+-- what value do I want to inhibit with?
 
+-- how to handle switching banks?
+
+-- should load these up into variables for each START, LENGTH, END
 -- memory map:
 -- 0000-3FFF	16KB ROM bank 00	     cartridge, fixed bank
 -- 4000-7FFF	16KB ROM Bank 01~NN	     cartridge, switchable bank via MBC

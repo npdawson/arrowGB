@@ -37,12 +37,15 @@ data Control Control7,8
 data Control = ReadMemReadMem7,8
              | WriteMemWriteMem8,9
 
-./src/Mem.hs,92
-module Mem Mem1,2
-ram ram13,14
-ram ram14,15
-memory memory16,17
-memory memory17,18
+./src/Mem.hs,150
+module Mem Mem2,3
+type Ram Ram13,14
+wram wram16,17
+wram wram17,18
+vram vram20,21
+vram vram21,22
+memory memory23,24
+memory memory24,25
 
 ./test/Spec.hs,30
 main main0,1
