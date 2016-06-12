@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes          #-}
 module Mem (memory) where
 
-import           Control.Monad.ST
+import           Control.Monad.Primitive (PrimMonad, PrimState)
 import           Control.Wire
 import qualified Data.ByteString             as B
 import qualified Data.Vector.Unboxed.Mutable as M
@@ -11,7 +11,7 @@ import           Prelude                     hiding (id, (.))
 
 import           Types
 
-type Ram = forall s. ST s (M.MVector s Word8)
+type Ram = forall m. PrimMonad m => m (M.MVector (PrimState m) Word8)
 
 -- 8K of working ram (for non-color GB)
 wram :: Ram
@@ -37,7 +37,9 @@ ioRegisters = M.replicate 0x80 0
 hram :: Ram
 hram = M.replicate 0x80 0
 
-memory :: B.ByteString -> Wire s () (ST s') (AddrBus, DataBus, Control) DataBus
+memory :: PrimMonad m =>
+          B.ByteString ->
+          Wire s () m (AddrBus, DataBus, Control) DataBus
 memory rom = mkGen_ $ \(AddrBus a, DataBus byte, ctrl) -> do
   let addr = fromIntegral a
   wram' <- wram
@@ -60,14 +62,16 @@ memory rom = mkGen_ $ \(AddrBus a, DataBus byte, ctrl) -> do
           | otherwise -> return 0
       return (Right (DataBus out))
     WriteMem -> do
-      case addr of
+      case addr of -- TODO handle bank switching when writing to rom
         _ | addr `elem` [0x8000..0x9FFF] -> M.write vram' (addr - 0x8000) byte
           | addr `elem` [0xA000..0xBFFF] -> M.write cartram (addr - 0xA000) byte
-            -- TODO handle mirror addresses in both ranges
-          | addr `elem` [0xC000..0xDFFF] -> M.write wram' (addr - 0xC000) byte
-          | addr `elem` [0xE000..0xFDFF] -> do -- ram mirror
-              M.write wram' (addr - 0xC000) byte
-              M.write wram' (addr - 0xF000) byte
+          | addr `elem` [0xC000..0xDDFF] -> do
+              M.write wram' (addr - 0xC000) byte -- ram
+              M.write wram' (addr - 0xA000) byte -- ram mirror
+          | addr `elem` [0xDE00..0xDFFF] -> M.write wram' (addr - 0xC000) byte
+          | addr `elem` [0xE000..0xFDFF] -> do
+              M.write wram' (addr - 0xC000) byte -- ram mirror
+              M.write wram' (addr - 0xF000) byte -- ram
           | addr `elem` [0xFE00..0xFE9F] -> M.write sprites (addr - 0xFE00) byte
           | addr `elem` [0xFF00..0xFF7F] -> M.write ioreg (addr - 0xFF00) byte
           | addr `elem` [0xFF80..0xFFFF] -> M.write hram' (addr - 0xFF80) byte
@@ -77,6 +81,8 @@ memory rom = mkGen_ $ \(AddrBus a, DataBus byte, ctrl) -> do
 -- what value to inhibit with?
 
 -- how to handle switching banks?
+-- depending on which MBC the "cartridge" uses, the banks are switched by
+--    "writing" to specific address ranges on the cart
 
 -- should load these up into variables for each START, LENGTH, END
 -- memory map:

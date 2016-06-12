@@ -25,7 +25,7 @@ ioRegisters ioRegisters33,34
 hram hram36,37
 hram hram37,38
 memory memory39,40
-memory memory40,41
+memory memory42,43
 
 ./src/CPU.hs,47
 module CPU CPU1,2
