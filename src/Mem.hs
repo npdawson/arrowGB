@@ -7,6 +7,7 @@ import           Control.Monad.Primitive (PrimMonad, PrimState)
 import           Control.Wire                hiding (when)
 import qualified Data.ByteString             as B
 import qualified Data.Vector.Unboxed.Mutable as M
+import qualified Data.Vector.Unboxed         as V
 import           Data.Word
 import           Prelude                     hiding (id, (.))
 
@@ -41,42 +42,44 @@ hram = M.replicate 0x80 0
 memory :: PrimMonad m =>
           B.ByteString ->
           Wire s () m (AddrBus, DataBus, Control) DataBus
-memory rom = mkGen_ $ \(AddrBus a, DataBus byte, ctrl) -> do
-  let addr = fromIntegral a
-  wram' <- wram
-  vram' <- vram
-  cartram <- extram
-  sprites <- spriteTable
-  ioreg <- ioRegisters
-  hram' <- hram
-  case ctrl of
-    ReadMem -> do
-      out <- case memmap addr of
-        ROM x -> return $ B.index rom x
-        VRAM x -> M.read vram' x
-        CartRAM x -> M.read cartram x
-        WRAM x -> M.read wram' x
-        Sprites x -> M.read sprites x
-        IOReg x -> M.read ioreg x
-        HiRAM x -> M.read hram' x
-        None -> return 0 -- error?
-      return (Right (DataBus out))
-    WriteMem -> do
-      case memmap addr of -- TODO handle bank switching when writing to rom
-        ROM _ -> return () -- TODO
-        VRAM x -> M.write vram' x byte
-        CartRAM x -> M.write cartram x byte
-        WRAM x -> do
-          M.write wram' x byte
-          when (x < 0x1E00) $
-            M.write wram' (x + 0x2000) byte
-          when (x >= 0x2000) $
-            M.write wram' (x - 0x2000) byte
-        Sprites x -> M.write sprites x byte
-        IOReg x -> M.write ioreg x byte
-        HiRAM x -> M.write hram' x byte
-        None -> return ()
-      return (Left ())
+memory rom = mem' $ V.replicate 0xFFFF (0 :: Word8)
+  where mem' :: PrimMonad m =>
+                V.Vector Word8 ->
+                Wire s () m (AddrBus, DataBus, Control) DataBus
+        mem' ram = mkGenN $ \(AddrBus a, DataBus byte, ctrl) -> do
+          let addr = fromIntegral a
+          ram' <- V.thaw ram
+          case ctrl of
+            ReadMem -> do
+              out <- case memmap addr of
+                ROM x -> return $ B.index rom x
+                _ -> M.read ram' addr
+                -- CartRAM x -> M.read ram x
+                -- WRAM x -> M.read ram' x
+                -- Sprites x -> M.read sprites x
+                -- IOReg x -> M.read ioreg x
+                -- HiRAM x -> M.read hram' x
+                -- None -> return 0 -- error?
+              ram'' <- V.freeze ram'
+              return (Right (DataBus out), mem' ram'')
+            WriteMem -> do
+              case memmap addr of -- TODO handle bank switching when writing rom
+                ROM _ -> return () -- TODO
+                _ -> do M.write ram' addr byte
+                        if addr < 0xDE00 then
+                          M.write ram' (addr + 0x2000) byte
+                          else if addr >= 0xE000 then
+                            M.write ram' (addr - 0x2000) byte
+                            else return ()
+                -- CartRAM x -> M.write cartram x byte
+                -- WRAM x -> do
+                --   M.write wram' x byte
+                -- Sprites x -> M.write sprites x byte
+                -- IOReg x -> M.write ioreg x byte
+                -- HiRAM x -> M.write hram' x byte
+                -- None -> return ()
+              ram'' <- V.freeze ram'
+              return (Left (), mem' ram'')
 
 memmap :: Int -> Area
 memmap addr
