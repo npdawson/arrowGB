@@ -2,7 +2,8 @@
 {-# LANGUAGE RankNTypes          #-}
 module Mem (memory) where
 
-import           Control.Monad
+import           Control.Monad.ST
+import           Control.Monad (when)
 import           Control.Monad.Primitive (PrimMonad, PrimState)
 import           Control.Wire                hiding (when)
 import qualified Data.ByteString             as B
@@ -43,10 +44,9 @@ memory :: PrimMonad m =>
           B.ByteString ->
           Wire s () m (AddrBus, DataBus, Control) DataBus
 memory rom = mem' $ V.replicate 0xFFFF (0 :: Word8)
-  where mem' :: PrimMonad m =>
-                V.Vector Word8 ->
+  where mem' :: V.Vector Word8 ->
                 Wire s () m (AddrBus, DataBus, Control) DataBus
-        mem' ram = mkGenN $ \(AddrBus a, DataBus byte, ctrl) -> do
+        mem' ram = mkSFN $ \(AddrBus a, DataBus byte, ctrl) -> runST $ do
           let addr = fromIntegral a
           ram' <- V.thaw ram
           case ctrl of
@@ -61,16 +61,15 @@ memory rom = mem' $ V.replicate 0xFFFF (0 :: Word8)
                 -- HiRAM x -> M.read hram' x
                 -- None -> return 0 -- error?
               ram'' <- V.freeze ram'
-              return (Right (DataBus out), mem' ram'')
+              return (DataBus out, mem' ram'')
             WriteMem -> do
               case memmap addr of -- TODO handle bank switching when writing rom
                 ROM _ -> return () -- TODO
                 _ -> do M.write ram' addr byte
-                        if addr < 0xDE00 then
+                        when (addr < 0xDE00) $
                           M.write ram' (addr + 0x2000) byte
-                          else if addr >= 0xE000 then
+                        when (addr >= 0xE000) $
                             M.write ram' (addr - 0x2000) byte
-                            else return ()
                 -- CartRAM x -> M.write cartram x byte
                 -- WRAM x -> do
                 --   M.write wram' x byte
@@ -79,7 +78,7 @@ memory rom = mem' $ V.replicate 0xFFFF (0 :: Word8)
                 -- HiRAM x -> M.write hram' x byte
                 -- None -> return ()
               ram'' <- V.freeze ram'
-              return (Left (), mem' ram'')
+              return (DataBus 0, mem' ram'')
 
 memmap :: Int -> Area
 memmap addr

@@ -1,47 +1,8 @@
 
-./src/Types.hs,258
-module Types Types0,1
-newtype DataBus DataBus4,5
-newtype DataBus = DataBus DataBus4,5
-newtype AddrBus AddrBus5,6
-newtype AddrBus = AddrBus AddrBus5,6
-data Control Control7,8
-data Control = ReadMemReadMem7,8
-             | WriteMemWriteMem8,9
-
-./src/Mem.hs,670
-module Mem Mem2,3
-type Ram Ram15,16
-wram wram18,19
-wram wram19,20
-vram vram22,23
-vram vram23,24
-extram extram26,27
-extram extram27,28
-spriteTable spriteTable30,31
-spriteTable spriteTable31,32
-ioRegisters ioRegisters34,35
-ioRegisters ioRegisters35,36
-hram hram38,39
-hram hram39,40
-memory memory41,42
-memory memory44,45
-memmap memmap83,84
-  | addr `elem`elem85,86
-data Area Area94,95
-data Area = ROM ROM94,95
-          | WRAM WRAM95,96
-          | VRAM VRAM96,97
-          | CartRAM CartRAM97,98
-          | Sprites Sprites98,99
-          | IOReg IOReg99,100
-          | HiRAM HiRAM100,101
-          | NoneNone101,102
-
-./src/CPU.hs,47
-module CPU CPU1,2
-cpu cpu8,9
-cpu cpu9,10
+./app/Main.hs,52
+module Main Main0,1
+main main4,5
+main main5,6
 
 ./src/Lib.hs,66
 module Lib Lib0,1
@@ -61,14 +22,53 @@ opcodes opcodes26,27
 prefixOps prefixOps285,286
 prefixOps prefixOps286,287
 
-./Setup.hs,15
-main main1,2
+./src/CPU.hs,47
+module CPU CPU1,2
+cpu cpu8,9
+cpu cpu9,10
+
+./src/Types.hs,258
+module Types Types0,1
+newtype DataBus DataBus4,5
+newtype DataBus = DataBus DataBus4,5
+newtype AddrBus AddrBus5,6
+newtype AddrBus = AddrBus AddrBus5,6
+data Control Control7,8
+data Control = ReadMemReadMem7,8
+             | WriteMemWriteMem8,9
+
+./src/Mem.hs,668
+module Mem Mem2,3
+type Ram Ram16,17
+wram wram19,20
+wram wram20,21
+vram vram23,24
+vram vram24,25
+extram extram27,28
+extram extram28,29
+spriteTable spriteTable31,32
+spriteTable spriteTable32,33
+ioRegisters ioRegisters35,36
+ioRegisters ioRegisters36,37
+hram hram39,40
+hram hram40,41
+memory memory42,43
+memory memory45,46
+memmap memmap82,83
+  | addr `elem`elem84,85
+data Area Area93,94
+data Area = ROM ROM93,94
+          | WRAM WRAM94,95
+          | VRAM VRAM95,96
+          | CartRAM CartRAM96,97
+          | Sprites Sprites97,98
+          | IOReg IOReg98,99
+          | HiRAM HiRAM99,100
+          | NoneNone100,101
 
 ./test/Spec.hs,30
 main main0,1
 main main1,2
 
-./app/Main.hs,52
-module Main Main0,1
-main main4,5
-main main5,6
+./Setup.hs,15
+main main1,2
