@@ -22,12 +22,22 @@ opcodes opcodes26,27
 prefixOps prefixOps285,286
 prefixOps prefixOps286,287
 
-./src/CPU.hs,47
-module CPU CPU1,2
-cpu cpu8,9
-cpu cpu9,10
+./src/CPU.hs,239
+cpu cpu12,13
+cpu cpu13,14
+initCPU initCPU36,37
+data CPU CPU38,39
+data CPU = CPU CPU38,39
+      a a39,40
+    , f f40,41
+    , b b41,42
+    , c c42,43
+    , d d43,44
+    , e e44,45
+    , pc pc45,46
+    , sp sp46,47
 
-./src/Types.hs,258
+./src/Types.hs,518
 module Types Types0,1
 newtype DataBus DataBus4,5
 newtype DataBus = DataBus DataBus4,5
@@ -36,35 +46,22 @@ newtype AddrBus = AddrBus AddrBus5,6
 data Control Control7,8
 data Control = ReadMemReadMem7,8
              | WriteMemWriteMem8,9
+data Area Area11,12
+data Area = ROMROM11,12
+          | VRAMVRAM12,13
+          | CartRAMCartRAM13,14
+          | WRAMWRAM14,15
+          | SpritesSprites15,16
+          | IORegIOReg16,17
+          | HiRAMHiRAM17,18
+          | NoneNone18,19
 
-./src/Mem.hs,668
+./src/Mem.hs,110
 module Mem Mem2,3
-type Ram Ram16,17
-wram wram19,20
-wram wram20,21
-vram vram23,24
-vram vram24,25
-extram extram27,28
-extram extram28,29
-spriteTable spriteTable31,32
-spriteTable spriteTable32,33
-ioRegisters ioRegisters35,36
-ioRegisters ioRegisters36,37
-hram hram39,40
-hram hram40,41
-memory memory42,43
-memory memory45,46
-memmap memmap82,83
-  | addr `elem`elem84,85
-data Area Area93,94
-data Area = ROM ROM93,94
-          | WRAM WRAM94,95
-          | VRAM VRAM95,96
-          | CartRAM CartRAM96,97
-          | Sprites Sprites97,98
-          | IOReg IOReg98,99
-          | HiRAM HiRAM99,100
-          | NoneNone100,101
+memory memory15,16
+memory memory17,18
+memmap memmap40,41
+  | addr `elem`elem42,43
 
 ./test/Spec.hs,30
 main main0,1

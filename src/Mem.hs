@@ -2,103 +2,52 @@
 {-# LANGUAGE RankNTypes          #-}
 module Mem (memory) where
 
+import           Control.Monad               (when)
 import           Control.Monad.ST
-import           Control.Monad (when)
-import           Control.Monad.Primitive (PrimMonad, PrimState)
 import           Control.Wire                hiding (when)
 import qualified Data.ByteString             as B
-import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Data.Vector.Unboxed         as V
+import qualified Data.Vector.Unboxed.Mutable as M
 import           Data.Word
 import           Prelude                     hiding (id, (.))
 
 import           Types
 
-type Ram = forall m. PrimMonad m => m (M.MVector (PrimState m) Word8)
-
--- 8K of working ram (for non-color GB)
-wram :: Ram
-wram = M.replicate (0xFC00 - 0xC000) 0
-
--- 8K of video ram
-vram :: Ram
-vram = M.replicate (8 * 1024) 0
-
--- external ram (cartridge)
-extram :: Ram
-extram = M.replicate (8 * 1024) 0
-
--- sprite table
-spriteTable :: Ram
-spriteTable = M.replicate 0xA0 0
-
--- probably need to initialize this with specific data
-ioRegisters :: Ram
-ioRegisters = M.replicate 0x80 0
-
--- high ram + interrupts enable register (1 byte at end)
-hram :: Ram
-hram = M.replicate 0x80 0
-
-memory :: PrimMonad m =>
-          B.ByteString ->
-          Wire s () m (AddrBus, DataBus, Control) DataBus
-memory rom = mem' $ V.replicate 0xFFFF (0 :: Word8)
-  where mem' :: V.Vector Word8 ->
-                Wire s () m (AddrBus, DataBus, Control) DataBus
-        mem' ram = mkSFN $ \(AddrBus a, DataBus byte, ctrl) -> runST $ do
+memory :: B.ByteString ->
+          Wire s e m (AddrBus, DataBus, Control) DataBus
+memory rom = mem' $ V.replicate 0x8000 (0 :: Word8)
+  where mem' ram = mkSFN $ \(AddrBus a, DataBus byte, ctrl) -> runST $ do
           let addr = fromIntegral a
           ram' <- V.thaw ram
           case ctrl of
             ReadMem -> do
               out <- case memmap addr of
-                ROM x -> return $ B.index rom x
-                _ -> M.read ram' addr
-                -- CartRAM x -> M.read ram x
-                -- WRAM x -> M.read ram' x
-                -- Sprites x -> M.read sprites x
-                -- IOReg x -> M.read ioreg x
-                -- HiRAM x -> M.read hram' x
-                -- None -> return 0 -- error?
+                ROM -> return $ B.index rom addr
+                _ -> M.read ram' (addr - 0x8000)
               ram'' <- V.freeze ram'
               return (DataBus out, mem' ram'')
             WriteMem -> do
-              case memmap addr of -- TODO handle bank switching when writing rom
-                ROM _ -> return () -- TODO
-                _ -> do M.write ram' addr byte
-                        when (addr < 0xDE00) $
-                          M.write ram' (addr + 0x2000) byte
-                        when (addr >= 0xE000) $
-                            M.write ram' (addr - 0x2000) byte
-                -- CartRAM x -> M.write cartram x byte
-                -- WRAM x -> do
-                --   M.write wram' x byte
-                -- Sprites x -> M.write sprites x byte
-                -- IOReg x -> M.write ioreg x byte
-                -- HiRAM x -> M.write hram' x byte
-                -- None -> return ()
+              case memmap addr of
+                ROM -> return () -- TODO handle bank switching when writing rom
+                _ -> do let x = addr - 0x8000
+                        M.write ram' x byte
+                        when (x < 0x5E00) $
+                          M.write ram' (x + 0x2000) byte
+                        when (x >= 0x6000) $
+                          M.write ram' (x - 0x2000) byte
               ram'' <- V.freeze ram'
               return (DataBus 0, mem' ram'')
 
 memmap :: Int -> Area
 memmap addr
-  | addr `elem` [0x0000..0x7FFF] = ROM addr
-  | addr `elem` [0x8000..0x9FFF] = VRAM (addr - 0x8000)
-  | addr `elem` [0xA000..0xBFFF] = CartRAM (addr - 0xA000)
-  | addr `elem` [0xC000..0xFDFF] = WRAM (addr - 0xC000)
-  | addr `elem` [0xFE00..0xFE9F] = Sprites (addr - 0xFE00)
-  | addr `elem` [0xFF00..0xFF7F] = IOReg (addr - 0xFF00)
-  | addr `elem` [0xFF80..0xFFFF] = HiRAM (addr - 0xFF00)
+  | addr `elem` [0x0000..0x7FFF] = ROM
+  | addr `elem` [0x8000..0x9FFF] = VRAM
+  | addr `elem` [0xA000..0xBFFF] = CartRAM
+  | addr `elem` [0xC000..0xFDFF] = WRAM
+  | addr `elem` [0xFE00..0xFE9F] = Sprites
+  | addr `elem` [0xFF00..0xFF7F] = IOReg
+  | addr `elem` [0xFF80..0xFFFF] = HiRAM
   | otherwise = None
-
-data Area = ROM Int
-          | WRAM Int
-          | VRAM Int
-          | CartRAM Int
-          | Sprites Int
-          | IOReg Int
-          | HiRAM Int
-          | None
 
 -- what value to inhibit with?
 

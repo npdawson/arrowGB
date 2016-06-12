@@ -8,3 +8,12 @@ newtype AddrBus = AddrBus Word16
 data Control = ReadMem
              | WriteMem
              -- | RWMem
+
+data Area = ROM
+          | VRAM
+          | CartRAM
+          | WRAM
+          | Sprites
+          | IOReg
+          | HiRAM
+          | None
