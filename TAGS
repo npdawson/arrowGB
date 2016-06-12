@@ -9,23 +9,34 @@ data Control Control7,8
 data Control = ReadMemReadMem7,8
              | WriteMemWriteMem8,9
 
-./src/Mem.hs,350
+./src/Mem.hs,665
 module Mem Mem2,3
-type Ram Ram13,14
-wram wram16,17
+type Ram Ram14,15
 wram wram17,18
-vram vram20,21
+wram wram18,19
 vram vram21,22
-extram extram24,25
+vram vram22,23
 extram extram25,26
-spriteTable spriteTable28,29
+extram extram26,27
 spriteTable spriteTable29,30
-ioRegisters ioRegisters32,33
+spriteTable spriteTable30,31
 ioRegisters ioRegisters33,34
-hram hram36,37
+ioRegisters ioRegisters34,35
 hram hram37,38
-memory memory39,40
-memory memory42,43
+hram hram38,39
+memory memory40,41
+memory memory43,44
+memmap memmap80,81
+  | addr `elem`elem82,83
+data Area Area91,92
+data Area = ROM ROM91,92
+          | WRAM WRAM92,93
+          | VRAM VRAM93,94
+          | CartRAM CartRAM94,95
+          | Sprites Sprites95,96
+          | IOReg IOReg96,97
+          | HiRAM HiRAM97,98
+          | NoneNone98,99
 
 ./src/CPU.hs,47
 module CPU CPU1,2

@@ -2,8 +2,9 @@
 {-# LANGUAGE RankNTypes          #-}
 module Mem (memory) where
 
+import           Control.Monad
 import           Control.Monad.Primitive (PrimMonad, PrimState)
-import           Control.Wire
+import           Control.Wire                hiding (when)
 import qualified Data.ByteString             as B
 import qualified Data.Vector.Unboxed.Mutable as M
 import           Data.Word
@@ -50,33 +51,52 @@ memory rom = mkGen_ $ \(AddrBus a, DataBus byte, ctrl) -> do
   hram' <- hram
   case ctrl of
     ReadMem -> do
-      out <- case addr of
-        _ | addr `elem` [0x0..0x7FFF]    -> return $ B.index rom addr
-          | addr `elem` [0x8000..0x9FFF] -> M.read vram' (addr - 0x8000)
-          | addr `elem` [0xA000..0xBFFF] -> M.read cartram (addr - 0xA000)
-          | addr `elem` [0xC000..0xFDFF] -> M.read wram' (addr - 0xC000)
-          | addr `elem` [0xFE00..0xFE9F] -> M.read sprites (addr - 0xFE00)
-          | addr `elem` [0xFEA0..0xFEFF] -> return 0 -- unusable, error?
-          | addr `elem` [0xFF00..0xFF7F] -> M.read ioreg (addr - 0xFF00)
-          | addr `elem` [0xFF80..0xFFFF] -> M.read hram' (addr - 0xFF80)
-          | otherwise -> return 0
+      out <- case memmap addr of
+        ROM x -> return $ B.index rom x
+        VRAM x -> M.read vram' x
+        CartRAM x -> M.read cartram x
+        WRAM x -> M.read wram' x
+        Sprites x -> M.read sprites x
+        IOReg x -> M.read ioreg x
+        HiRAM x -> M.read hram' x
+        None -> return 0 -- error?
       return (Right (DataBus out))
     WriteMem -> do
-      case addr of -- TODO handle bank switching when writing to rom
-        _ | addr `elem` [0x8000..0x9FFF] -> M.write vram' (addr - 0x8000) byte
-          | addr `elem` [0xA000..0xBFFF] -> M.write cartram (addr - 0xA000) byte
-          | addr `elem` [0xC000..0xDDFF] -> do
-              M.write wram' (addr - 0xC000) byte -- ram
-              M.write wram' (addr - 0xA000) byte -- ram mirror
-          | addr `elem` [0xDE00..0xDFFF] -> M.write wram' (addr - 0xC000) byte
-          | addr `elem` [0xE000..0xFDFF] -> do
-              M.write wram' (addr - 0xC000) byte -- ram mirror
-              M.write wram' (addr - 0xF000) byte -- ram
-          | addr `elem` [0xFE00..0xFE9F] -> M.write sprites (addr - 0xFE00) byte
-          | addr `elem` [0xFF00..0xFF7F] -> M.write ioreg (addr - 0xFF00) byte
-          | addr `elem` [0xFF80..0xFFFF] -> M.write hram' (addr - 0xFF80) byte
-          | otherwise -> return ()
+      case memmap addr of -- TODO handle bank switching when writing to rom
+        ROM _ -> return () -- TODO
+        VRAM x -> M.write vram' x byte
+        CartRAM x -> M.write cartram x byte
+        WRAM x -> do
+          M.write wram' x byte
+          when (x < 0x1E00) $
+            M.write wram' (x + 0x2000) byte
+          when (x >= 0x2000) $
+            M.write wram' (x - 0x2000) byte
+        Sprites x -> M.write sprites x byte
+        IOReg x -> M.write ioreg x byte
+        HiRAM x -> M.write hram' x byte
+        None -> return ()
       return (Left ())
+
+memmap :: Int -> Area
+memmap addr
+  | addr `elem` [0x0000..0x7FFF] = ROM addr
+  | addr `elem` [0x8000..0x9FFF] = VRAM (addr - 0x8000)
+  | addr `elem` [0xA000..0xBFFF] = CartRAM (addr - 0xA000)
+  | addr `elem` [0xC000..0xFDFF] = WRAM (addr - 0xC000)
+  | addr `elem` [0xFE00..0xFE9F] = Sprites (addr - 0xFE00)
+  | addr `elem` [0xFF00..0xFF7F] = IOReg (addr - 0xFF00)
+  | addr `elem` [0xFF80..0xFFFF] = HiRAM (addr - 0xFF00)
+  | otherwise = None
+
+data Area = ROM Int
+          | WRAM Int
+          | VRAM Int
+          | CartRAM Int
+          | Sprites Int
+          | IOReg Int
+          | HiRAM Int
+          | None
 
 -- what value to inhibit with?
 
