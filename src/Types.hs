@@ -1,5 +1,6 @@
 module Types where
 
+import Control.Wire
 import Data.Word
 
 newtype DataBus = DataBus Word8
@@ -17,3 +18,5 @@ data Area = ROM
           | IOReg
           | HiRAM
           | None
+
+type MemWire s e m = Wire s e m (AddrBus, DataBus, Control) DataBus

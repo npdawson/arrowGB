@@ -1,6 +1,7 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE RankNTypes          #-}
-module Mem (memory) where
+module Mem ( memory
+           , readMem) where
 
 import           Control.Monad               (when)
 import           Control.Monad.ST
@@ -14,29 +15,39 @@ import           Prelude                     hiding (id, (.))
 import           Types
 
 memory :: B.ByteString ->
-          Wire s e m (AddrBus, DataBus, Control) DataBus
+          MemWire s e m
 memory rom = mem' $ V.replicate 0x8000 (0 :: Word8)
   where mem' ram = mkSFN $ \(AddrBus a, DataBus byte, ctrl) -> runST $ do
           let addr = fromIntegral a
           ram' <- V.thaw ram
-          case ctrl of
-            ReadMem -> do
-              out <- case memmap addr of
+          out <- case ctrl of
+            ReadMem ->
+              case memmap addr of
                 ROM -> return $ B.index rom addr
                 _ -> M.read ram' (addr - 0x8000)
-              ram'' <- V.freeze ram'
-              return (DataBus out, mem' ram'')
             WriteMem -> do
               case memmap addr of
-                ROM -> return () -- TODO handle bank switching when writing rom
+                ROM -> return () -- TODO handle bank switching when writing to rom
                 _ -> do let x = addr - 0x8000
                         M.write ram' x byte
                         when (x < 0x5E00) $
                           M.write ram' (x + 0x2000) byte
                         when (x >= 0x6000) $
                           M.write ram' (x - 0x2000) byte
-              ram'' <- V.freeze ram'
-              return (DataBus 0, mem' ram'')
+              return 0
+          ram'' <- V.freeze ram'
+          return (DataBus out, mem' ram'')
+
+readMem :: Monad m =>
+           s ->
+           MemWire s e m ->
+           Word16 ->
+           m Word8
+readMem dt mem index = do
+  (Right (DataBus byte), _) <- stepWire mem dt (Right (AddrBus index,
+                                                       DataBus 0,
+                                                       ReadMem))
+  return byte
 
 memmap :: Int -> Area
 memmap addr

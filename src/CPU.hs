@@ -1,51 +1,48 @@
-{-# LANGUAGE Arrows #-}
 module CPU where
 
+import Control.Monad.ST
 import Control.Wire
 import qualified Data.ByteString as B
 import Data.Map.Strict
+import qualified Data.Vector.Unboxed as V
+import qualified Data.Vector.Unboxed.Mutable as M
 import Data.Word
 
 import Mem
 import Opcodes
 import Types
 
-cpu :: (HasTime t s, Monad m) => CPU -> B.ByteString -> Wire s e m DataBus ()
-cpu cs rom = let mem = memory rom in mkSF $ \dt _ -> do
-  let currPC = pc cs
-  -- fetch
-  (Right (DataBus op), mem) <- stepWire mem dt
-                               (Right (AddrBus currPC, DataBus 0x00, ReadMem))
-  (Right (DataBus opLo), mem) <- stepWire mem dt
-                                   (Right (AddrBus (currPC + 1), DataBus 0x00,
-                                            ReadMem))
-  (Right (DataBus opHi), mem) <- stepWire mem dt
-                                    (Right (AddrBus (currPC + 2), DataBus 0x00,
-                                            ReadMem))
-  -- decode
-  let instr = opcodes ! op
-  let operand = case bytes instr of
-               1 -> 0 :: Word16
-               2 -> opLo
-               3 -> opHi * 0x100 + opLo
-  -- execute
-  cs' <- case op of
-           0x00 -> return cs
-           0x01 -> return CPU (a cs) (f cs)
-  return $ cpu cs' mem
+cpu :: (HasTime t s) => B.ByteString -> Wire s e m DataBus Int
+cpu rom = cpu' m $ V.replicate 0x10C (0 :: Word8)
+  where m = memory rom
+        cpu' mem regs = mkSF $ \dt _ -> do
+          let pcLo = regs V.! 0x109
+          let pcHi = regs V.! 0x108
+          let pc = fromIntegral pcHi * 0x100 + fromIntegral pcLo
+          -- fetch
+          op <- readMem dt mem pc
+          opLo <- readMem dt mem (pc+1)
+          opHi <- readMem dt mem (pc+2)
+          -- decode
+          let instr = opcodes ! fromIntegral op
+          let operand = case bytes instr of
+                       2 -> fromIntegral opLo
+                       3 -> fromIntegral opHi * 0x100 + fromIntegral opLo
+                       _ -> 0
+          -- execute
+          (regs', mem') <- execute op operand instr regs mem
+          return (cycles instr, cpu' mem' regs')
 
-initCPU = CPU 0 0 0 0 0 0 0x100 0xFFFE
+execute :: Monad m =>
+           Word8 -> Int ->
+           Instr ->
+           V.Vector Word8 ->
+           MemWire s e m ->
+           m (V.Vector Word8, MemWire s e m)
+execute op operand instr regs mem = do
+  return (regs, mem)
 
-data CPU = CPU {
-      a :: Word8
-    , f :: Word8
-    , b :: Word8
-    , c :: Word8
-    , d :: Word8
-    , e :: Word8
-    , pc :: Word16
-    , sp :: Word16
-    }
+
 
 -- TODO write functions to handle different opcode types
 -- ld :: Operand -> Operand -> ...

@@ -22,46 +22,49 @@ opcodes opcodes26,27
 prefixOps prefixOps285,286
 prefixOps prefixOps286,287
 
-./src/CPU.hs,239
-cpu cpu12,13
-cpu cpu13,14
-initCPU initCPU36,37
-data CPU CPU38,39
-data CPU = CPU CPU38,39
-      a a39,40
-    , f f40,41
-    , b b41,42
-    , c c42,43
-    , d d43,44
-    , e e44,45
-    , pc pc45,46
-    , sp sp46,47
+./src/CPU.hs,96
+module CPU CPU0,1
+cpu cpu14,15
+cpu cpu15,16
+execute execute35,36
+execute execute41,42
 
-./src/Types.hs,518
+./src/flycheck_CPU.hs,96
+module CPU CPU0,1
+cpu cpu14,15
+cpu cpu15,16
+execute execute35,36
+execute execute41,42
+
+./src/Types.hs,571
 module Types Types0,1
-newtype DataBus DataBus4,5
-newtype DataBus = DataBus DataBus4,5
-newtype AddrBus AddrBus5,6
-newtype AddrBus = AddrBus AddrBus5,6
-data Control Control7,8
-data Control = ReadMemReadMem7,8
-             | WriteMemWriteMem8,9
-data Area Area11,12
-data Area = ROMROM11,12
-          | VRAMVRAM12,13
-          | CartRAMCartRAM13,14
-          | WRAMWRAM14,15
-          | SpritesSprites15,16
-          | IORegIOReg16,17
-          | HiRAMHiRAM17,18
-          | NoneNone18,19
+newtype DataBus DataBus5,6
+newtype DataBus = DataBus DataBus5,6
+newtype AddrBus AddrBus6,7
+newtype AddrBus = AddrBus AddrBus6,7
+data Control Control8,9
+data Control = ReadMemReadMem8,9
+             | WriteMemWriteMem9,10
+data Area Area12,13
+data Area = ROMROM12,13
+          | VRAMVRAM13,14
+          | CartRAMCartRAM14,15
+          | WRAMWRAM15,16
+          | SpritesSprites16,17
+          | IORegIOReg17,18
+          | HiRAMHiRAM18,19
+          | NoneNone19,20
+type MemWire MemWire21,22
+type MemWire s s21,22
 
-./src/Mem.hs,110
+./src/Mem.hs,156
 module Mem Mem2,3
-memory memory15,16
-memory memory17,18
-memmap memmap40,41
-  | addr `elem`elem42,43
+memory memory16,17
+memory memory18,19
+readMem readMem40,41
+readMem readMem45,46
+memmap memmap51,52
+  | addr `elem`elem53,54
 
 ./test/Spec.hs,30
 main main0,1
